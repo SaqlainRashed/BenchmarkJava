@@ -170,8 +170,29 @@ public class DatabaseHelper {
     }
 
     private static void executeSQLCommand(String sql) throws Exception {
-        Statement stmt = getSqlStatement();
-        stmt.executeUpdate(sql);
+        if (!isSafeSQLCommand(sql)) {
+            throw new SecurityException("Rejected potentially unsafe SQL command: " + sql);
+        }
+        java.sql.PreparedStatement pstmt = getSqlConnection().prepareStatement(sql);
+        pstmt.executeUpdate();
+    }
+
+    /**
+     * Restrict executeSQLCommand to a whitelist of known, trusted DDL/DML statement types used
+     * during internal database initialization. This method is never intended to run
+     * externally-supplied/user input, so any command that does not match one of these trusted
+     * prefixes is rejected, preventing this helper from being (mis)used to execute injected SQL.
+     */
+    private static boolean isSafeSQLCommand(String sql) {
+        if (sql == null) {
+            return false;
+        }
+        String trimmed = sql.trim().toUpperCase();
+        return trimmed.startsWith("DROP TABLE")
+                || trimmed.startsWith("DROP PROCEDURE")
+                || trimmed.startsWith("CREATE TABLE")
+                || trimmed.startsWith("CREATE PROCEDURE")
+                || trimmed.startsWith("INSERT INTO");
     }
 
     public static void outputUpdateComplete(String sql, HttpServletResponse response)
