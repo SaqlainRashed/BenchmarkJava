@@ -101,6 +101,14 @@ public class Utils {
             // Make DBF safe from XXE by disabling doctype declarations (per OWASP XXE cheat sheet)
             safeDocBuilderFactory.setFeature(
                     "http://apache.org/xml/features/disallow-doctype-decl", true);
+            safeDocBuilderFactory.setFeature(
+                    "http://xml.org/sax/features/external-general-entities", false);
+            safeDocBuilderFactory.setFeature(
+                    "http://xml.org/sax/features/external-parameter-entities", false);
+            safeDocBuilderFactory.setFeature(
+                    "http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            safeDocBuilderFactory.setXIncludeAware(false);
+            safeDocBuilderFactory.setExpandEntityReferences(false);
         } catch (ParserConfigurationException e) {
             System.out.println(
                     "ERROR: couldn't set http://apache.org/xml/features/disallow-doctype-decl");
